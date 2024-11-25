@@ -1,0 +1,2 @@
+ALTER TABLE users
+ADD CONSTRAINT DF_users_role DEFAULT 'USER' FOR role;

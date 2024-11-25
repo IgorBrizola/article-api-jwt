@@ -3,6 +3,8 @@ package com.auth.jwt.service
 import com.auth.jwt.config.JwtProperties
 import com.auth.jwt.controller.auth.AuthenticationRequest
 import com.auth.jwt.controller.auth.AuthenticationResponse
+import com.auth.jwt.controller.auth.RefreshTokenRequest
+import com.auth.jwt.controller.auth.TokenResponse
 import com.auth.jwt.repository.RefreshTokenRepository
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -51,14 +53,14 @@ class AuthenticationService(
         expirationDate = Date(System.currentTimeMillis() + jwtProperties.accessTokenExpiration)
     )
 
-    fun refreshAccessToken(token: String): String? {
-        val extractEmail = tokenService.extractEmail(token)
+    fun refreshAccessToken(tokenRequest: RefreshTokenRequest): TokenResponse? {
+        val extractEmail = tokenService.extractEmail(tokenRequest.token)
         return extractEmail?.let { email ->
             val currentUserDetails = userDetailsService.loadUserByUsername(email)
-            val refreshTokenUserDetails = refreshTokenRepository.findUserDetailsByToken(token)
+            val refreshTokenUserDetails = refreshTokenRepository.findUserDetailsByToken(tokenRequest.token)
 
-            if (!tokenService.isExpired(token) && currentUserDetails.username == refreshTokenUserDetails?.username)
-                generateAccessToken(currentUserDetails)
+            if (!tokenService.isExpired(tokenRequest.token) && currentUserDetails.username == refreshTokenUserDetails?.username)
+                TokenResponse(token = generateAccessToken(currentUserDetails))
             else null
         }
     }

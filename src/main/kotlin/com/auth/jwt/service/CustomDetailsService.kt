@@ -22,5 +22,4 @@ class CustomDetailsService(
         .password(this.password)
         .roles(this.role.name)
         .build()
-
 }
