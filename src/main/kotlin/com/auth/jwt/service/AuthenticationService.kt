@@ -31,8 +31,6 @@ class AuthenticationService(
 
         val user = userDetailsService.loadUserByUsername(authRequest.email)
 
-        println("USER DETAILS $user")
-
         val accessToken = generateAccessToken(user)
 
         val refreshToken = generateRefreshToken(user)
