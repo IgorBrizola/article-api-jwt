@@ -5,6 +5,7 @@ import com.auth.jwt.controller.auth.AuthenticationRequest
 import com.auth.jwt.controller.auth.AuthenticationResponse
 import com.auth.jwt.controller.auth.RefreshTokenRequest
 import com.auth.jwt.controller.auth.TokenResponse
+import com.auth.jwt.model.RefreshToken
 import com.auth.jwt.repository.RefreshTokenRepository
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -18,9 +19,8 @@ class AuthenticationService(
     private val userDetailsService: CustomDetailsService,
     private val tokenService: TokenService,
     private val jwtProperties: JwtProperties,
-    private val refreshTokenRepository: RefreshTokenRepository
+    private val refreshTokenRepository: RefreshTokenRepository,
 ) {
-
     fun authentication(authRequest: AuthenticationRequest): AuthenticationResponse {
         authManager.authenticate(
             UsernamePasswordAuthenticationToken(
@@ -31,11 +31,15 @@ class AuthenticationService(
 
         val user = userDetailsService.loadUserByUsername(authRequest.email)
 
+        println("USER DETAILS $user")
+
         val accessToken = generateAccessToken(user)
 
         val refreshToken = generateRefreshToken(user)
 
-        refreshTokenRepository.save(refreshToken, user)
+        val refreshTokenEntity = RefreshToken(token = refreshToken, username = user.username)
+
+        refreshTokenRepository.save(refreshTokenEntity)
 
         return AuthenticationResponse(
             accessToken = accessToken,
@@ -57,9 +61,9 @@ class AuthenticationService(
         val extractEmail = tokenService.extractEmail(tokenRequest.token)
         return extractEmail?.let { email ->
             val currentUserDetails = userDetailsService.loadUserByUsername(email)
-            val refreshTokenUserDetails = refreshTokenRepository.findUserDetailsByToken(tokenRequest.token)
+            val refreshTokenUsername = refreshTokenRepository.findUsernameByToken(tokenRequest.token)
 
-            if (!tokenService.isExpired(tokenRequest.token) && currentUserDetails.username == refreshTokenUserDetails?.username)
+            if (!tokenService.isExpired(tokenRequest.token) && currentUserDetails.username == refreshTokenUsername)
                 TokenResponse(token = generateAccessToken(currentUserDetails))
             else null
         }
