@@ -35,14 +35,27 @@ class AuthenticationService(
 
         val refreshToken = generateRefreshToken(user)
 
-        val refreshTokenEntity = RefreshToken(token = refreshToken, username = user.username)
-
-        refreshTokenRepository.save(refreshTokenEntity)
+        updateOrCreateRefreshToken(user.username, refreshToken)
 
         return AuthenticationResponse(
             accessToken = accessToken,
             refreshToken = refreshToken
         )
+    }
+
+    private fun updateOrCreateRefreshToken(username: String, refreshToken: String) {
+        val existingToken = refreshTokenRepository.findByUsername(username)
+
+        if (existingToken != null) {
+            val updateToken = existingToken.copy(token = refreshToken)
+            refreshTokenRepository.save(updateToken)
+        } else {
+            val refreshNewToken = RefreshToken(
+                token = refreshToken,
+                username = username
+            )
+            refreshTokenRepository.save(refreshNewToken)
+        }
     }
 
     private fun generateRefreshToken(user: UserDetails) = tokenService.generate(

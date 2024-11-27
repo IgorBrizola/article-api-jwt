@@ -11,5 +11,5 @@ interface RefreshTokenRepository : JpaRepository<RefreshToken, UUID>{
 
     @Query("SELECT r.username FROM RefreshToken r WHERE r.token = ?1")
     fun findUsernameByToken(token: String): String?
-
+    fun findByUsername(username: String): RefreshToken?
 }
