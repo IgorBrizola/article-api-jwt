@@ -15,7 +15,7 @@ data class Article(
     @GeneratedValue(strategy = GenerationType.UUID)
     val id: UUID,
     @Column(name = "title")
-    val title: String,
+    val title: String?,
     @Column(name = "content")
-    val content: String
+    val content: String?
 )
